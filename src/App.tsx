@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { PromptInput } from "./components/PromptInput";
+import { FlashcardDeck } from "./components/FlashcardDeck";
 import { generateStudyMaterial } from "./lib/api";
 import type { StudyResult } from "./types/study";
 
@@ -51,13 +52,16 @@ function App() {
           {loading && <p className="text-sm text-slate-600">Generating your study set...</p>}
           {error && <p className="text-sm text-red-600">{error}</p>}
           {result && (
-            <div className="space-y-1 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="font-semibold">{result.topic}</p>
-              <p className="text-sm text-slate-600">
-                {result.flashcards.length} flashcards
-              </p>
-              <p className="text-sm text-slate-600">{result.quiz.length} quiz questions</p>
-            </div>
+            <>
+              <div className="space-y-1 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="font-semibold">{result.topic}</p>
+                <p className="text-sm text-slate-600">
+                  {result.flashcards.length} flashcards
+                </p>
+                <p className="text-sm text-slate-600">{result.quiz.length} quiz questions</p>
+              </div>
+              <FlashcardDeck cards={result.flashcards} />
+            </>
           )}
         </section>
       </div>
