@@ -6,20 +6,28 @@ interface QuizProps {
 }
 
 export function Quiz({ questions }: QuizProps) {
+	const [originalQuestions] = useState<QuizQuestion[]>(() => [...questions]);
+	const [activeQuestions, setActiveQuestions] = useState<QuizQuestion[]>(
+		() => [...questions],
+	);
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 	const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
 	const [answers, setAnswers] = useState<number[]>([]);
 	const [isComplete, setIsComplete] = useState(false);
+	const [isRetrySession, setIsRetrySession] = useState(false);
 
-	if (questions.length === 0) {
+	if (originalQuestions.length === 0) {
 		return null;
 	}
 
 	if (isComplete) {
 		const correctCount = answers.filter(
-			(answer, index) => answer === questions[index]?.correctAnswer,
+			(answer, index) => answer === activeQuestions[index]?.correctAnswer,
 		).length;
 		const incorrectCount = answers.length - correctCount;
+		const incorrectQuestions = activeQuestions.filter(
+			(question, index) => answers[index] !== question.correctAnswer,
+		);
 
 		return (
 			<section className="w-full space-y-5" aria-label="Quiz results">
@@ -38,24 +46,44 @@ export function Quiz({ questions }: QuizProps) {
 							<p className="mt-1 text-lg font-bold">{incorrectCount}</p>
 						</div>
 					</div>
-					<button
-						type="button"
-						onClick={() => {
-							setCurrentQuestionIndex(0);
-							setSelectedAnswer(null);
-							setAnswers([]);
-							setIsComplete(false);
-						}}
-						className="mt-6 w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
-					>
-						Restart Quiz
-					</button>
+					<div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+						{incorrectQuestions.length > 0 && (
+							<button
+								type="button"
+								onClick={() => {
+									setActiveQuestions(incorrectQuestions);
+									setCurrentQuestionIndex(0);
+									setSelectedAnswer(null);
+									setAnswers([]);
+									setIsComplete(false);
+									setIsRetrySession(true);
+								}}
+								className="w-full rounded-lg border border-indigo-300 px-4 py-3 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
+							>
+								Retry Incorrect Questions
+							</button>
+						)}
+						<button
+							type="button"
+							onClick={() => {
+								setActiveQuestions([...originalQuestions]);
+								setCurrentQuestionIndex(0);
+								setSelectedAnswer(null);
+								setAnswers([]);
+								setIsComplete(false);
+								setIsRetrySession(false);
+							}}
+							className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
+						>
+							Restart Quiz
+						</button>
+					</div>
 				</div>
 			</section>
 		);
 	}
 
-	const currentQuestion = questions[currentQuestionIndex];
+	const currentQuestion = activeQuestions[currentQuestionIndex];
 
 	const handleNext = () => {
 		if (selectedAnswer === null) {
@@ -65,7 +93,7 @@ export function Quiz({ questions }: QuizProps) {
 		const updatedAnswers = [...answers, selectedAnswer];
 		setAnswers(updatedAnswers);
 
-		if (currentQuestionIndex === questions.length - 1) {
+		if (currentQuestionIndex === activeQuestions.length - 1) {
 			setIsComplete(true);
 			return;
 		}
@@ -75,11 +103,14 @@ export function Quiz({ questions }: QuizProps) {
 	};
 
 	return (
-		<section className="w-full space-y-5" aria-label="Quiz">
+		<section
+			className="w-full space-y-5"
+			aria-label={isRetrySession ? "Retry incorrect questions" : "Quiz"}
+		>
 			<div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
 				<h2 className="text-2xl font-bold text-slate-900">Quiz</h2>
 				<p className="text-sm font-medium text-slate-500">
-					Question {currentQuestionIndex + 1} of {questions.length}
+					Question {currentQuestionIndex + 1} of {activeQuestions.length}
 				</p>
 			</div>
 
