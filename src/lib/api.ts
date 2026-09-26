@@ -1,10 +1,17 @@
 import type { Difficulty, StudyResult } from "../types/study";
 
+const apiBaseUrl =
+	import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "";
+
+const generateUrl = apiBaseUrl
+	? `${apiBaseUrl}/api/generate`
+	: "/api/generate";
+
 export async function generateStudyMaterial(
 	prompt: string,
 	difficulty: Difficulty = "intermediate",
 ): Promise<StudyResult> {
-	const response = await fetch("/api/generate", {
+	const response = await fetch(generateUrl, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
