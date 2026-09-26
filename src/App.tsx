@@ -5,7 +5,7 @@ import { Quiz } from "./components/Quiz";
 import { LoadingState } from "./components/LoadingState";
 import { ErrorState } from "./components/ErrorState";
 import { generateStudyMaterial } from "./lib/api";
-import type { StudyResult } from "./types/study";
+import type { Difficulty, StudyResult } from "./types/study";
 
 const USE_DEV_MOCK_RESULT = false;
 
@@ -86,10 +86,17 @@ function App() {
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [difficulty, setDifficulty] = useState<Difficulty>("intermediate");
   const requestIdRef = useRef(0);
-  const lastSubmittedPromptRef = useRef("");
+  const lastSubmittedRequestRef = useRef<{
+    prompt: string;
+    difficulty: Difficulty;
+  } | null>(null);
 
-  const generateForPrompt = async (submittedPrompt: string) => {
+  const generateForPrompt = async (
+    submittedPrompt: string,
+    submittedDifficulty: Difficulty,
+  ) => {
     const requestId = ++requestIdRef.current;
 
     setLoading(true);
@@ -97,7 +104,10 @@ function App() {
     setResult(null);
 
     try {
-      const studyResult = await generateStudyMaterial(submittedPrompt);
+      const studyResult = await generateStudyMaterial(
+        submittedPrompt,
+        submittedDifficulty,
+      );
 
       if (requestId !== requestIdRef.current) {
         return;
@@ -127,13 +137,19 @@ function App() {
       return;
     }
 
-    lastSubmittedPromptRef.current = trimmedPrompt;
-    void generateForPrompt(trimmedPrompt);
+    lastSubmittedRequestRef.current = {
+      prompt: trimmedPrompt,
+      difficulty,
+    };
+    void generateForPrompt(trimmedPrompt, difficulty);
   };
 
   const handleRetry = () => {
-    if (lastSubmittedPromptRef.current) {
-      void generateForPrompt(lastSubmittedPromptRef.current);
+    if (lastSubmittedRequestRef.current) {
+      void generateForPrompt(
+        lastSubmittedRequestRef.current.prompt,
+        lastSubmittedRequestRef.current.difficulty,
+      );
     }
   };
 
@@ -160,12 +176,31 @@ function App() {
           )}
         </header>
 
-        <PromptInput
-          value={prompt}
-          onChange={setPrompt}
-          onSubmit={handleGenerate}
-          loading={loading}
-        />
+        <div className="space-y-4">
+          <div className="max-w-xs space-y-2">
+            <label htmlFor="study-difficulty" className="text-sm font-semibold text-slate-800">
+              Difficulty
+            </label>
+            <select
+              id="study-difficulty"
+              value={difficulty}
+              onChange={(event) => setDifficulty(event.target.value as Difficulty)}
+              disabled={loading}
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition hover:border-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:bg-slate-100 sm:w-64"
+            >
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </div>
+
+          <PromptInput
+            value={prompt}
+            onChange={setPrompt}
+            onSubmit={handleGenerate}
+            loading={loading}
+          />
+        </div>
 
         {!result && !loading && !error && (
           <>

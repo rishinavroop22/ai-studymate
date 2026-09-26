@@ -15,3 +15,5 @@ export interface StudyResult {
 	flashcards: Flashcard[];
 	quiz: QuizQuestion[];
 }
+
+export type Difficulty = "beginner" | "intermediate" | "advanced";

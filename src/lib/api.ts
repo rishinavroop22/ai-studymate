@@ -1,12 +1,15 @@
-import type { StudyResult } from "../types/study";
+import type { Difficulty, StudyResult } from "../types/study";
 
-export async function generateStudyMaterial(prompt: string): Promise<StudyResult> {
+export async function generateStudyMaterial(
+	prompt: string,
+	difficulty: Difficulty = "intermediate",
+): Promise<StudyResult> {
 	const response = await fetch("/api/generate", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify({ prompt }),
+		body: JSON.stringify({ prompt, difficulty }),
 	});
 
 	if (!response.ok) {
