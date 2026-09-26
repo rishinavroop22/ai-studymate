@@ -139,6 +139,8 @@ app.post("/api/generate", async (req, res) => {
 	}
 });
 
-app.listen(3001, () => {
-	console.log("AI StudyMate server listening on port 3001");
+const PORT = Number(process.env.PORT) || 3001;
+
+app.listen(PORT, () => {
+	console.log(`AI StudyMate server listening on port ${PORT}`);
 });
