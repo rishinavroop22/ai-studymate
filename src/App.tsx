@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { PromptInput } from "./components/PromptInput";
 import { FlashcardDeck } from "./components/FlashcardDeck";
 import { Quiz } from "./components/Quiz";
+import { LoadingState } from "./components/LoadingState";
+import { ErrorState } from "./components/ErrorState";
 import { generateStudyMaterial } from "./lib/api";
 import type { StudyResult } from "./types/study";
 
@@ -84,28 +86,54 @@ function App() {
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
+  const lastSubmittedPromptRef = useRef("");
 
-  const handleGenerate = async () => {
+  const generateForPrompt = async (submittedPrompt: string) => {
+    const requestId = ++requestIdRef.current;
+
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const studyResult = await generateStudyMaterial(submittedPrompt);
+
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
+
+      if (!studyResult) {
+        setError("Unable to generate study material. Please try again.");
+        return;
+      }
+
+      setResult(studyResult);
+    } catch {
+      if (requestId === requestIdRef.current) {
+        setError("Unable to generate study material. Please try again.");
+      }
+    } finally {
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleGenerate = () => {
     const trimmedPrompt = prompt.trim();
 
     if (!trimmedPrompt) {
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    lastSubmittedPromptRef.current = trimmedPrompt;
+    void generateForPrompt(trimmedPrompt);
+  };
 
-    try {
-      const studyResult = await generateStudyMaterial(trimmedPrompt);
-      setResult(studyResult);
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Failed to generate study material.",
-      );
-    } finally {
-      setLoading(false);
+  const handleRetry = () => {
+    if (lastSubmittedPromptRef.current) {
+      void generateForPrompt(lastSubmittedPromptRef.current);
     }
   };
 
@@ -124,8 +152,8 @@ function App() {
         />
 
         <section className="space-y-3" aria-live="polite">
-          {loading && <p className="text-sm text-slate-600">Generating your study set...</p>}
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {loading && <LoadingState />}
+          {error && <ErrorState message={error} onRetry={handleRetry} />}
           {result && (
             <>
               <div className="space-y-1 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
