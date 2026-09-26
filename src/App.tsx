@@ -138,10 +138,26 @@ function App() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900 sm:px-6 lg:px-8">
+    <main className="min-h-screen overflow-hidden bg-[linear-gradient(135deg,rgba(224,231,255,0.7),transparent_38%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-4 py-10 text-slate-900 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
         <header>
-          <h1 className="text-4xl font-bold tracking-tight">AI StudyMate</h1>
+          <div className="mb-5 flex items-center gap-3 text-sm font-semibold text-indigo-600">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-lg text-white shadow-sm">
+              A
+            </span>
+            <span>AI-powered study companion</span>
+          </div>
+          <h1 className="max-w-2xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">
+            AI StudyMate
+          </h1>
+          <p className="mt-3 text-xl font-semibold tracking-tight text-slate-700 sm:text-2xl">
+            Learn smarter. Test yourself.
+          </p>
+          {!result && (
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
+              Turn any topic, question, or notes into interactive flashcards and quizzes you can use to study with confidence.
+            </p>
+          )}
         </header>
 
         <PromptInput
@@ -150,6 +166,57 @@ function App() {
           onSubmit={handleGenerate}
           loading={loading}
         />
+
+        {!result && !loading && !error && (
+          <>
+            <section aria-labelledby="quick-start-heading" className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <h2 id="quick-start-heading" className="text-sm font-semibold text-slate-800">
+                  Start with an example
+                </h2>
+                <span className="text-xs text-slate-400">Pick a topic to begin</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {["Java OOP", "Operating Systems", "DBMS"].map((example) => (
+                  <button
+                    key={example}
+                    type="button"
+                    onClick={() => setPrompt(example)}
+                    className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-100 active:scale-[0.98]"
+                  >
+                    {example}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section aria-labelledby="feature-heading" className="space-y-3">
+              <h2 id="feature-heading" className="text-sm font-semibold text-slate-800">
+                Your study set includes
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-sm font-semibold text-slate-900">Flashcards</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Learn key concepts with interactive cards.
+                  </p>
+                </article>
+                <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-sm font-semibold text-slate-900">Quick Quiz</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Test yourself with multiple-choice questions.
+                  </p>
+                </article>
+                <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-sm font-semibold text-slate-900">Instant Feedback</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Get explanations and track your score.
+                  </p>
+                </article>
+              </div>
+            </section>
+          </>
+        )}
 
         <section className="space-y-3" aria-live="polite">
           {loading && <LoadingState />}
